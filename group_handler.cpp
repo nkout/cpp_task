@@ -1,4 +1,5 @@
 #include "group_handler.hpp"
+#include <cmath>
 
 namespace MyTask
 {
@@ -30,7 +31,7 @@ namespace MyTask
 
         groupB.pop_back();
 
-        if (SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1));
+        if (SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1))
             return true;
 
         return false;
