@@ -20,7 +20,7 @@ namespace MyTask {
         m.addEntry({"plane", 2, 100});
         m.addEntry({"submarine", 3, 200});
 
-        m.splitGroups2();
+        m.splitGroupsOpt();
         m.Print();
 
         EXPECT_EQ(m.getEntriesCount(), 9);

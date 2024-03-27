@@ -32,25 +32,25 @@ namespace MyTask {
     public:
         void addEntry(const DataEntry &entry) {data.push_back(entry);}
         void addEntry(DataEntry && entry) {data.push_back(std::move(entry));}
-        size_t getEntriesCount() {return data.size();}
+        size_t getEntriesCount() const {return data.size();}
+        bool getIsSplitted() const {return (groupABestIndexes.size() > 0 && groupBBestIndexes.size() > 0);}
         bool splitGroups();
-        bool splitGroups2();
+        bool splitGroupsOpt();
         void Print();
 
         static const unsigned int count = 5;
     private:
-        void SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
-                         unsigned int groupACount, unsigned int groupBCount, size_t index);
+        void splitGroupsImpl(unsigned int groupACount, unsigned int groupBCount, size_t index);
+        void splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount);
+        unsigned int getAverageStrength(std::vector<unsigned int> &groupIndexes);
+        void updateBestGroups();
 
-        void SplitSubset2(unsigned int groupACount, unsigned int groupBCount,
-                          std::set<unsigned int> groupAIndex, std::set<unsigned int> groupBIndex);
-
-        unsigned int getAverageStrength(std::vector<DataEntry*> &group);
         std::vector<DataEntry> data;
-        std::vector<DataEntry*> groupA;
-        std::vector<DataEntry*> groupB;
+        std::vector<unsigned int> groupABestIndexes;
+        std::vector<unsigned int> groupBBestIndexes;
+        std::vector<unsigned int> groupACurrentIndexes;
+        std::vector<unsigned int> groupBCurrentIndexes;
 
-        void saveBestGroups(std::vector<DataEntry *> &groupA, std::vector<DataEntry *> &groupB);
-        void saveBestGroups2(std::set<unsigned int> &groupAIndex, std::set<unsigned int> &groupBIndex);
+        void initIndexes();
     };
 }

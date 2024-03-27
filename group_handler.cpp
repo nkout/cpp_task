@@ -1,21 +1,25 @@
 #include "group_handler.hpp"
 #include <cmath>
+#include <algorithm>
 
 namespace MyTask
 {
     bool DataManager::splitGroups() {
-        std::vector<DataEntry*> groupA;
-        std::vector<DataEntry*> groupB;
-        this->groupA.clear();
-        this->groupB.clear();
+        initIndexes();
 
-        SplitSubset(groupA, groupB, 0, 0, 0);
+        splitGroupsImpl(0, 0, 0);
 
-        return (this->groupA.size() > 0 && this->groupB.size() > 0);
+        return getIsSplitted();
     }
 
-    void DataManager::SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
-                                  unsigned int groupACount, unsigned int groupBCount, size_t index)
+    void DataManager::initIndexes() {
+        groupACurrentIndexes.clear();
+        groupBCurrentIndexes.clear();
+        groupABestIndexes.clear();
+        groupBBestIndexes.clear();
+    }
+
+    void DataManager::splitGroupsImpl(unsigned int groupACount, unsigned int groupBCount, size_t index)
     {
         if (index >= data.size())
             return;
@@ -25,96 +29,75 @@ namespace MyTask
 
         if (groupACount == count && groupBCount == count)
         {
-            saveBestGroups(groupA, groupB);
+            updateBestGroups();
         }
 
-        groupA.push_back(&data[index]);
-        SplitSubset(groupA, groupB, groupACount + data[index].getCount(), groupBCount, index + 1);
-        groupA.pop_back();
+        groupACurrentIndexes.push_back(index);
+        splitGroupsImpl(groupACount + data[index].getCount(), groupBCount, index + 1);
+        groupACurrentIndexes.pop_back();
 
-        groupB.push_back(&data[index]);
-        SplitSubset(groupA, groupB, groupACount, groupBCount + data[index].getCount(), index + 1);
-        groupB.pop_back();
+        groupBCurrentIndexes.push_back(index);
+        splitGroupsImpl(groupACount, groupBCount + data[index].getCount(), index + 1);
+        groupBCurrentIndexes.pop_back();
 
-        SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1);
+        splitGroupsImpl(groupACount, groupBCount, index + 1);
     }
 
-    void DataManager::saveBestGroups(std::vector<DataEntry *> &groupA, std::vector<DataEntry *> &groupB) {
-        if (this->groupA.size() == 0 || this->groupB.size() == 0)
+    void DataManager::updateBestGroups() {
+        if (groupABestIndexes.size() == 0 || groupBBestIndexes.size() == 0)
         {
-            this->groupA = groupA;
-            this->groupB = groupB;
+            groupABestIndexes = groupACurrentIndexes;
+            groupBBestIndexes = groupBCurrentIndexes;
         }
-        else if (abs(getAverageStrength(groupA) - getAverageStrength(groupB)) <
-                 abs(getAverageStrength(DataManager::groupA) - getAverageStrength(this->groupB)))
+        else if (abs(getAverageStrength(groupACurrentIndexes) - getAverageStrength(groupBCurrentIndexes)) <
+                 abs(getAverageStrength(groupABestIndexes) - getAverageStrength(groupBBestIndexes)))
         {
-            this->groupA = groupA;
-            this->groupB = groupB;
+            groupABestIndexes = groupACurrentIndexes;
+            groupBBestIndexes = groupBCurrentIndexes;
         }
     }
 
-    void DataManager::saveBestGroups2(std::set<unsigned int> &groupAIndex, std::set<unsigned int> &groupBIndex)
-    {
-        std::vector<DataEntry *> groupA;
-        std::vector<DataEntry *> groupB;
+    bool DataManager::splitGroupsOpt() {
+        initIndexes();
 
-        for (const auto index : groupAIndex)
-        {
-            groupA.push_back(&data[index]);
-        }
-
-        for (const auto index : groupBIndex)
-        {
-            groupB.push_back(&data[index]);
-        }
-
-        saveBestGroups(groupA, groupB);
+        splitGroupsOptImpl(0, 0);
+        return (groupABestIndexes.size() > 0 && groupABestIndexes.size() > 0);
     }
 
-    bool DataManager::splitGroups2() {
-        std::set<unsigned int> groupAIndex;
-        std::set<unsigned int> groupBIndex;
-        this->groupA.clear();
-        this->groupB.clear();
-
-        SplitSubset2(0, 0, groupAIndex, groupBIndex);
-        return (this->groupA.size() > 0 && this->groupB.size() > 0);
-    }
-
-    void DataManager::SplitSubset2(unsigned int groupACount, unsigned int groupBCount,
-                                   std::set<unsigned int> groupAIndex, std::set<unsigned int> groupBIndex)
+    void DataManager::splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount)
     {
         if (groupACount == count && groupBCount == count &&
-            groupAIndex.size() <= count && groupBIndex.size() <= count)
+            groupACurrentIndexes.size() <= count && groupBCurrentIndexes.size() <= count)
         {
-            saveBestGroups2(groupAIndex, groupBIndex);
+            updateBestGroups();
             return;
         }
 
         if (groupACount > count || groupBCount > count ||
-            groupAIndex.size() >= count || groupBIndex.size() >= count)
+            groupACurrentIndexes.size() > count || groupBCurrentIndexes.size() > count)
             return;
 
         if (groupACount < count)
         {
-            unsigned int start = groupAIndex.size() ? *groupAIndex.rbegin() + 1 : 0;
+            unsigned int start = groupACurrentIndexes.size() ? groupACurrentIndexes[groupACurrentIndexes.size() - 1] + 1 : 0;
 
             for (auto index = start; index < data.size() ; index++)
             {
                 if (groupACount + data[index].getCount() > count)
                     continue;
 
-                groupAIndex.insert(index);
-                SplitSubset2(groupACount + data[index].getCount(), groupBCount, groupAIndex, groupBIndex);
-                groupAIndex.erase(index);
+                groupACurrentIndexes.push_back(index);
+                splitGroupsOptImpl(groupACount + data[index].getCount(), groupBCount);
+                groupACurrentIndexes.pop_back();
             }
         }
         else
         {
-            unsigned int start = groupBIndex.size() ? *groupBIndex.rbegin() + 1 : 0;
+            unsigned int start = groupBCurrentIndexes.size() ? groupBCurrentIndexes[groupBCurrentIndexes.size() - 1] + 1 : 0;
             for (auto index = start; index < data.size() ; index++)
             {
-                if (groupAIndex.find(index) != groupAIndex.end())
+                //it should be fast as small vector
+                if (std::find(groupACurrentIndexes.begin(), groupACurrentIndexes.end(), index) != groupACurrentIndexes.end())
                 {
                     continue;
                 }
@@ -122,9 +105,9 @@ namespace MyTask
                 if (groupBCount + data[index].getCount() > count)
                     continue;
 
-                groupBIndex.insert(index);
-                SplitSubset2(groupACount, groupBCount+ data[index].getCount(), groupAIndex, groupBIndex);
-                groupBIndex.erase(index);
+                groupBCurrentIndexes.push_back(index);
+                splitGroupsOptImpl(groupACount, groupBCount + data[index].getCount());
+                groupBCurrentIndexes.pop_back();
 
             }
         }
@@ -132,18 +115,18 @@ namespace MyTask
 
     }
 
-    unsigned int DataManager::getAverageStrength(std::vector<DataEntry*> &group)
+    unsigned int DataManager::getAverageStrength(std::vector<unsigned int> &groupIndexes)
     {
         unsigned int sumStrength = 0;
         unsigned int sumCount = 0;
 
-        for (const auto data_ptr: group)
+        for (const auto data_index: groupIndexes)
         {
-            if (!data_ptr)
+            if (data_index >= data.size())
                 break;
 
-            sumCount += data_ptr->getCount();
-            sumStrength += data_ptr->getStrength() * data_ptr->getCount();
+            sumCount += data[data_index].getCount();
+            sumStrength += data[data_index].getStrength() * data[data_index].getCount();
         }
 
         if (!sumCount)
@@ -153,17 +136,19 @@ namespace MyTask
     }
 
     void DataManager::Print() {
-        std::cout<< "group A" << "\n";
-        for (auto data_ptr: groupA)
+        std::cout<< "group A:" << "\n";
+        for (auto data_index: groupABestIndexes)
         {
-            std::cout<< (*data_ptr) << "\n";
+            std::cout<< data[data_index] << "\n";
         }
 
-        std::cout<< "group B" << "\n";
-        for (auto data_ptr: groupB)
+        std::cout<< "group B:" << "\n";
+        for (auto data_index: groupBBestIndexes)
         {
-            std::cout<< (*data_ptr) << "\n";
+            std::cout<< data[data_index] << "\n";
         }
+
+        std::cout<<  "\n";
     }
 
     std::ostream& operator<<(std::ostream& os, const DataEntry& obj)
