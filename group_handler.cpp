@@ -28,6 +28,7 @@ namespace MyTask
         if (groupACount == count && groupBCount == count)
         {
             updateBestGroups();
+            return;
         }
 
         if (index >= data.size())
