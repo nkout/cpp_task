@@ -20,12 +20,12 @@ namespace MyTask
     }
 
     //more clean code, but it can go  to deep recursion if we have lot of data
-    void DataGroupHandler::splitGroupsImpl(unsigned int groupACount, unsigned int groupBCount, size_t index)
+    void DataGroupHandler::splitGroupsImpl(unsigned int groupACountSum, unsigned int groupBCountSum, size_t index)
     {
-        if (groupACount > count || groupBCount > count)
+        if (groupACountSum > groupCountSummary || groupBCountSum > groupCountSummary)
             return;
 
-        if (groupACount == count && groupBCount == count)
+        if (groupACountSum == groupCountSummary && groupBCountSum == groupCountSummary)
         {
             updateBestGroups();
             return;
@@ -36,16 +36,16 @@ namespace MyTask
 
         //element can belong to group A
         groupACurrentIndexes.push_back(index);
-        splitGroupsImpl(groupACount + data[index].getCount(), groupBCount, index + 1);
+        splitGroupsImpl(groupACountSum + data[index].getCount(), groupBCountSum, index + 1);
         groupACurrentIndexes.pop_back();
 
         //or it can belong to group B
         groupBCurrentIndexes.push_back(index);
-        splitGroupsImpl(groupACount, groupBCount + data[index].getCount(), index + 1);
+        splitGroupsImpl(groupACountSum, groupBCountSum + data[index].getCount(), index + 1);
         groupBCurrentIndexes.pop_back();
 
         //or it can be left out
-        splitGroupsImpl(groupACount, groupBCount, index + 1);
+        splitGroupsImpl(groupACountSum, groupBCountSum, index + 1);
     }
 
     void DataGroupHandler::updateBestGroups() {
@@ -69,32 +69,32 @@ namespace MyTask
         return (groupABestIndexes.size() > 0 && groupABestIndexes.size() > 0);
     }
 
-    //this code is not so beautiful, but it takes advantage of count limited to 5,
+    //this code is not so beautiful, but it takes advantage of group count summary limited to 5,
     //so recursion is limited to 10
-    void DataGroupHandler::splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount)
+    void DataGroupHandler::splitGroupsOptImpl(unsigned int groupACountSum, unsigned int groupBCountSum)
     {
-        if (groupACount == count && groupBCount == count &&
-            groupACurrentIndexes.size() <= count && groupBCurrentIndexes.size() <= count)
+        if (groupACountSum == groupCountSummary && groupBCountSum == groupCountSummary &&
+            groupACurrentIndexes.size() <= groupCountSummary && groupBCurrentIndexes.size() <= groupCountSummary)
         {
             updateBestGroups();
             return;
         }
 
-        if (groupACount > count || groupBCount > count ||
-            groupACurrentIndexes.size() > count || groupBCurrentIndexes.size() > count)
+        if (groupACountSum > groupCountSummary || groupBCountSum > groupCountSummary ||
+            groupACurrentIndexes.size() > groupCountSummary || groupBCurrentIndexes.size() > groupCountSummary)
             return;
 
-        if (groupACount < count)
+        if (groupACountSum < groupCountSummary)
         {
             unsigned int start = groupACurrentIndexes.size() ? groupACurrentIndexes[groupACurrentIndexes.size() - 1] + 1 : 0;
 
             for (auto index = start; index < data.size() ; index++)
             {
-                if (groupACount + data[index].getCount() > count)
+                if (groupACountSum + data[index].getCount() > groupCountSummary)
                     continue;
 
                 groupACurrentIndexes.push_back(index);
-                splitGroupsOptImpl(groupACount + data[index].getCount(), groupBCount);
+                splitGroupsOptImpl(groupACountSum + data[index].getCount(), groupBCountSum);
                 groupACurrentIndexes.pop_back();
             }
         }
@@ -109,11 +109,11 @@ namespace MyTask
                     continue;
                 }
 
-                if (groupBCount + data[index].getCount() > count)
+                if (groupBCountSum + data[index].getCount() > groupCountSummary)
                     continue;
 
                 groupBCurrentIndexes.push_back(index);
-                splitGroupsOptImpl(groupACount, groupBCount + data[index].getCount());
+                splitGroupsOptImpl(groupACountSum, groupBCountSum + data[index].getCount());
                 groupBCurrentIndexes.pop_back();
 
             }

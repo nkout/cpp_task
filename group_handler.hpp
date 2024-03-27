@@ -41,10 +41,10 @@ namespace MyTask {
         std::vector<DataEntry> getGroupB() const;
         void Print();
 
-        static const unsigned int count = 5;
+        static const unsigned int groupCountSummary = 5;
     private:
-        void splitGroupsImpl(unsigned int groupACount, unsigned int groupBCount, size_t index);
-        void splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount);
+        void splitGroupsImpl(unsigned int groupACountSum, unsigned int groupBCountSum, size_t index);
+        void splitGroupsOptImpl(unsigned int groupACountSum, unsigned int groupBCountSum);
         unsigned int getAverageStrength(std::vector<unsigned int> &groupIndexes);
         void updateBestGroups();
         void initIndexes();
