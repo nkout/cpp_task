@@ -15,6 +15,7 @@ namespace MyTask {
                 id(id_), count(count_), strength(strength_) {}
         DataEntry(const DataEntry &) = default;
         DataEntry & operator=(const DataEntry &) = default;
+        bool operator== (const DataEntry &d) const {return (d.getId() == id && d.getCount() == count && d.getStrength() == strength);}
 
         std::string getId() const {return id;}
         unsigned int getCount() const {return count;}
@@ -28,14 +29,16 @@ namespace MyTask {
 
     std::ostream& operator<<(std::ostream& os, const DataEntry& obj);
 
-    class DataManager {
+    class DataGroupHandler {
     public:
         void addEntry(const DataEntry &entry) {data.push_back(entry);}
         void addEntry(DataEntry && entry) {data.push_back(std::move(entry));}
         size_t getEntriesCount() const {return data.size();}
-        bool getIsSplitted() const {return (groupABestIndexes.size() > 0 && groupBBestIndexes.size() > 0);}
+        bool getIsSplit() const {return (groupABestIndexes.size() > 0 && groupBBestIndexes.size() > 0);}
         bool splitGroups();
         bool splitGroupsOpt();
+        std::vector<DataEntry> getGroupA() const;
+        std::vector<DataEntry> getGroupB() const;
         void Print();
 
         static const unsigned int count = 5;
@@ -44,6 +47,7 @@ namespace MyTask {
         void splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount);
         unsigned int getAverageStrength(std::vector<unsigned int> &groupIndexes);
         void updateBestGroups();
+        void initIndexes();
 
         std::vector<DataEntry> data;
         std::vector<unsigned int> groupABestIndexes;
@@ -51,6 +55,5 @@ namespace MyTask {
         std::vector<unsigned int> groupACurrentIndexes;
         std::vector<unsigned int> groupBCurrentIndexes;
 
-        void initIndexes();
     };
 }

@@ -4,26 +4,24 @@
 
 namespace MyTask
 {
-    bool DataManager::splitGroups() {
+    bool DataGroupHandler::splitGroups() {
         initIndexes();
 
         splitGroupsImpl(0, 0, 0);
 
-        return getIsSplitted();
+        return getIsSplit();
     }
 
-    void DataManager::initIndexes() {
+    void DataGroupHandler::initIndexes() {
         groupACurrentIndexes.clear();
         groupBCurrentIndexes.clear();
         groupABestIndexes.clear();
         groupBBestIndexes.clear();
     }
 
-    void DataManager::splitGroupsImpl(unsigned int groupACount, unsigned int groupBCount, size_t index)
+    //more clean code, but it can go  to deep recursion if we have lot of data
+    void DataGroupHandler::splitGroupsImpl(unsigned int groupACount, unsigned int groupBCount, size_t index)
     {
-        if (index >= data.size())
-            return;
-
         if (groupACount > count || groupBCount > count)
             return;
 
@@ -32,18 +30,24 @@ namespace MyTask
             updateBestGroups();
         }
 
+        if (index >= data.size())
+            return;
+
+        //element can belong to group A
         groupACurrentIndexes.push_back(index);
         splitGroupsImpl(groupACount + data[index].getCount(), groupBCount, index + 1);
         groupACurrentIndexes.pop_back();
 
+        //or it can belong to group B
         groupBCurrentIndexes.push_back(index);
         splitGroupsImpl(groupACount, groupBCount + data[index].getCount(), index + 1);
         groupBCurrentIndexes.pop_back();
 
+        //or it can be left out
         splitGroupsImpl(groupACount, groupBCount, index + 1);
     }
 
-    void DataManager::updateBestGroups() {
+    void DataGroupHandler::updateBestGroups() {
         if (groupABestIndexes.size() == 0 || groupBBestIndexes.size() == 0)
         {
             groupABestIndexes = groupACurrentIndexes;
@@ -57,14 +61,16 @@ namespace MyTask
         }
     }
 
-    bool DataManager::splitGroupsOpt() {
+    bool DataGroupHandler::splitGroupsOpt() {
         initIndexes();
 
         splitGroupsOptImpl(0, 0);
         return (groupABestIndexes.size() > 0 && groupABestIndexes.size() > 0);
     }
 
-    void DataManager::splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount)
+    //this code is not so beautiful, but it takes advantage of count limited to 5,
+    //so recursion is limited to 10
+    void DataGroupHandler::splitGroupsOptImpl(unsigned int groupACount, unsigned int groupBCount)
     {
         if (groupACount == count && groupBCount == count &&
             groupACurrentIndexes.size() <= count && groupBCurrentIndexes.size() <= count)
@@ -115,7 +121,7 @@ namespace MyTask
 
     }
 
-    unsigned int DataManager::getAverageStrength(std::vector<unsigned int> &groupIndexes)
+    unsigned int DataGroupHandler::getAverageStrength(std::vector<unsigned int> &groupIndexes)
     {
         unsigned int sumStrength = 0;
         unsigned int sumCount = 0;
@@ -134,8 +140,31 @@ namespace MyTask
 
         return sumStrength / sumCount;
     }
+    std::vector<DataEntry> DataGroupHandler::getGroupA() const
+    {
+        std::vector<DataEntry> result;
 
-    void DataManager::Print() {
+        for (auto index : groupABestIndexes)
+        {
+            result.push_back(data[index]);
+        }
+
+        return result;
+    }
+
+    std::vector<DataEntry> DataGroupHandler::getGroupB() const
+    {
+        std::vector<DataEntry> result;
+
+        for (auto index : groupBBestIndexes)
+        {
+            result.push_back(data[index]);
+        }
+
+        return result;
+    }
+
+    void DataGroupHandler::Print() {
         std::cout<< "group A:" << "\n";
         for (auto data_index: groupABestIndexes)
         {
