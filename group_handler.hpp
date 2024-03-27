@@ -40,7 +40,7 @@ namespace MyTask {
         static const unsigned int defaultStrengthThreshPercent = 10;
         unsigned int count;
     private:
-        bool SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
+        void SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
                          unsigned int groupACount, unsigned int groupBCount, size_t index);
 
         unsigned int getAverageStrength(std::vector<DataEntry*> &group);

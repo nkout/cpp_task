@@ -4,37 +4,49 @@
 namespace MyTask
 {
     bool DataManager::splitGroups() {
-        return SplitSubset(groupA, groupB, 0, 0, 0);
+        std::vector<DataEntry*> groupA;
+        std::vector<DataEntry*> groupB;
+        this->groupA.clear();
+        this->groupB.clear();
+
+        SplitSubset(groupA, groupB, 0, 0, 0);
+
+        return (this->groupA.size() > 0 && this->groupB.size() > 0);
     }
 
-    bool DataManager::SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
+    void DataManager::SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
                                   unsigned int groupACount, unsigned int groupBCount, size_t index)
     {
         if (index >= data.size())
-            return false;
+            return;
 
         if (groupACount > count || groupBCount > count)
-            return false;
+            return;
 
-        if (groupACount == count && groupBCount == count && abs(getAverageStrength(groupA) - getAverageStrength(groupB)) < defaultStrengthThreshPercent)
-            return true;
+        if (groupACount == count && groupBCount == count)
+        {
+            if (this->groupA.size() == 0 || this->groupB.size() == 0)
+            {
+                this->groupA = groupA;
+                this->groupB = groupB;
+            }
+            else if (abs(getAverageStrength(groupA) - getAverageStrength(groupB)) <
+                    abs(getAverageStrength(this->groupA) - getAverageStrength(this->groupB)))
+            {
+                this->groupA = groupA;
+                this->groupB = groupB;
+            }
+        }
 
         groupA.push_back(&data[index]);
-        if (SplitSubset(groupA, groupB, groupACount + data[index].getCount(), groupBCount, index + 1))
-            return true;
-
+        SplitSubset(groupA, groupB, groupACount + data[index].getCount(), groupBCount, index + 1);
         groupA.pop_back();
+
         groupB.push_back(&data[index]);
-
-        if (SplitSubset(groupA, groupB, groupACount, groupBCount + data[index].getCount(), index + 1))
-            return true;
-
+        SplitSubset(groupA, groupB, groupACount, groupBCount + data[index].getCount(), index + 1);
         groupB.pop_back();
 
-        if (SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1))
-            return true;
-
-        return false;
+        SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1);
     }
 
     unsigned int DataManager::getAverageStrength(std::vector<DataEntry*> &group)
@@ -42,7 +54,7 @@ namespace MyTask
         unsigned int sumStrength = 0;
         unsigned int sumCount = 0;
 
-        for (auto data_ptr: group)
+        for (const auto data_ptr: group)
         {
             if (!data_ptr)
                 break;
