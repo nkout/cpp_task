@@ -1,5 +1,7 @@
 #include "group_handler.hpp"
 #include <cmath>
+#include <set>
+#include <array>
 
 namespace MyTask
 {
@@ -47,6 +49,44 @@ namespace MyTask
         groupB.pop_back();
 
         SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1);
+    }
+
+    bool DataManager::splitGroups2() {
+        std::set<unsigned int> groupA;
+        std::set<unsigned int> groupB;
+
+        std::array<unsigned int, count> indexA{};
+        std::array<unsigned int, count> indexB{};
+
+        SplitSubset2(0, 0, 0, indexA, indexB);
+        return true;
+    }
+
+    void DataManager::SplitSubset2(unsigned int depth, unsigned int groupACount, unsigned int groupBCount,
+                                   std::array<unsigned int, count> & indexA, std::array<unsigned int, count> & indexB)
+    {
+        if (depth >= count)
+            return;
+
+        auto & indexTbl = indexA;
+        auto & tmp_count = groupACount;
+
+        unsigned int start = (depth > 0) ? indexTbl[depth -1] + 1: 0;
+        unsigned int &index = indexTbl[depth];
+
+        for (index = start; index < data.size() ; index++)
+        {
+            if (tmp_count + data[index].getCount() > count)
+                continue;
+
+            if (tmp_count + data[index].getCount() == count)
+            {
+                //search for groupB
+                continue;
+            }
+
+            SplitSubset2(depth + 1, groupACount + data[index].getCount(), groupBCount, indexA, indexB);
+        }
     }
 
     unsigned int DataManager::getAverageStrength(std::vector<DataEntry*> &group)

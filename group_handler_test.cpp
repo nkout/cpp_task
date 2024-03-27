@@ -22,6 +22,7 @@ namespace MyTask {
 
         EXPECT_EQ(m.getEntriesCount(), 9);
         EXPECT_EQ(m.splitGroups(), true);
+        m.splitGroups2();
         m.Print();
     }
 }

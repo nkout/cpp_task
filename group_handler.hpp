@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include "iostream"
 #include "iosfwd"
 
@@ -29,19 +30,20 @@ namespace MyTask {
 
     class DataManager {
     public:
-        DataManager(): count(defaultCount) {}
         void addEntry(const DataEntry &entry) {data.push_back(entry);}
         void addEntry(DataEntry && entry) {data.push_back(std::move(entry));}
         size_t getEntriesCount() {return data.size();}
         bool splitGroups();
+        bool splitGroups2();
         void Print();
 
-        static const unsigned int defaultCount = 5;
-        static const unsigned int defaultStrengthThreshPercent = 10;
-        unsigned int count;
+        static const unsigned int count = 5;
     private:
         void SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
                          unsigned int groupACount, unsigned int groupBCount, size_t index);
+
+        void SplitSubset2(unsigned int depth, unsigned int groupACount, unsigned int groupBCount,
+                          std::array<unsigned int, count> & indexA, std::array<unsigned int, count> & indexB);
 
         unsigned int getAverageStrength(std::vector<DataEntry*> &group);
         std::vector<DataEntry> data;
