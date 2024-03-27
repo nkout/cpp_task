@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <array>
+#include <set>
 #include "iostream"
 #include "iosfwd"
 
@@ -42,12 +42,15 @@ namespace MyTask {
         void SplitSubset(std::vector<DataEntry*> &groupA, std::vector<DataEntry*> &groupB,
                          unsigned int groupACount, unsigned int groupBCount, size_t index);
 
-        void SplitSubset2(unsigned int depth, unsigned int groupACount, unsigned int groupBCount,
-                          std::array<unsigned int, count> & indexA, std::array<unsigned int, count> & indexB);
+        void SplitSubset2(unsigned int groupACount, unsigned int groupBCount,
+                          std::set<unsigned int> groupAIndex, std::set<unsigned int> groupBIndex);
 
         unsigned int getAverageStrength(std::vector<DataEntry*> &group);
         std::vector<DataEntry> data;
         std::vector<DataEntry*> groupA;
         std::vector<DataEntry*> groupB;
+
+        void saveBestGroups(std::vector<DataEntry *> &groupA, std::vector<DataEntry *> &groupB);
+        void saveBestGroups2(std::set<unsigned int> &groupAIndex, std::set<unsigned int> &groupBIndex);
     };
 }

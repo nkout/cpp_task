@@ -1,7 +1,5 @@
 #include "group_handler.hpp"
 #include <cmath>
-#include <set>
-#include <array>
 
 namespace MyTask
 {
@@ -27,17 +25,7 @@ namespace MyTask
 
         if (groupACount == count && groupBCount == count)
         {
-            if (this->groupA.size() == 0 || this->groupB.size() == 0)
-            {
-                this->groupA = groupA;
-                this->groupB = groupB;
-            }
-            else if (abs(getAverageStrength(groupA) - getAverageStrength(groupB)) <
-                    abs(getAverageStrength(this->groupA) - getAverageStrength(this->groupB)))
-            {
-                this->groupA = groupA;
-                this->groupB = groupB;
-            }
+            saveBestGroups(groupA, groupB);
         }
 
         groupA.push_back(&data[index]);
@@ -51,42 +39,97 @@ namespace MyTask
         SplitSubset(groupA, groupB, groupACount, groupBCount, index + 1);
     }
 
-    bool DataManager::splitGroups2() {
-        std::set<unsigned int> groupA;
-        std::set<unsigned int> groupB;
-
-        std::array<unsigned int, count> indexA{};
-        std::array<unsigned int, count> indexB{};
-
-        SplitSubset2(0, 0, 0, indexA, indexB);
-        return true;
+    void DataManager::saveBestGroups(std::vector<DataEntry *> &groupA, std::vector<DataEntry *> &groupB) {
+        if (this->groupA.size() == 0 || this->groupB.size() == 0)
+        {
+            this->groupA = groupA;
+            this->groupB = groupB;
+        }
+        else if (abs(getAverageStrength(groupA) - getAverageStrength(groupB)) <
+                 abs(getAverageStrength(DataManager::groupA) - getAverageStrength(this->groupB)))
+        {
+            this->groupA = groupA;
+            this->groupB = groupB;
+        }
     }
 
-    void DataManager::SplitSubset2(unsigned int depth, unsigned int groupACount, unsigned int groupBCount,
-                                   std::array<unsigned int, count> & indexA, std::array<unsigned int, count> & indexB)
+    void DataManager::saveBestGroups2(std::set<unsigned int> &groupAIndex, std::set<unsigned int> &groupBIndex)
     {
-        if (depth >= count)
+        std::vector<DataEntry *> groupA;
+        std::vector<DataEntry *> groupB;
+
+        for (const auto index : groupAIndex)
+        {
+            groupA.push_back(&data[index]);
+        }
+
+        for (const auto index : groupBIndex)
+        {
+            groupB.push_back(&data[index]);
+        }
+
+        saveBestGroups(groupA, groupB);
+    }
+
+    bool DataManager::splitGroups2() {
+        std::set<unsigned int> groupAIndex;
+        std::set<unsigned int> groupBIndex;
+        this->groupA.clear();
+        this->groupB.clear();
+
+        SplitSubset2(0, 0, groupAIndex, groupBIndex);
+        return (this->groupA.size() > 0 && this->groupB.size() > 0);
+    }
+
+    void DataManager::SplitSubset2(unsigned int groupACount, unsigned int groupBCount,
+                                   std::set<unsigned int> groupAIndex, std::set<unsigned int> groupBIndex)
+    {
+        if (groupACount == count && groupBCount == count &&
+            groupAIndex.size() <= count && groupBIndex.size() <= count)
+        {
+            saveBestGroups2(groupAIndex, groupBIndex);
+            return;
+        }
+
+        if (groupACount > count || groupBCount > count ||
+            groupAIndex.size() >= count || groupBIndex.size() >= count)
             return;
 
-        auto & indexTbl = indexA;
-        auto & tmp_count = groupACount;
-
-        unsigned int start = (depth > 0) ? indexTbl[depth -1] + 1: 0;
-        unsigned int &index = indexTbl[depth];
-
-        for (index = start; index < data.size() ; index++)
+        if (groupACount < count)
         {
-            if (tmp_count + data[index].getCount() > count)
-                continue;
+            unsigned int start = groupAIndex.size() ? *groupAIndex.rbegin() + 1 : 0;
 
-            if (tmp_count + data[index].getCount() == count)
+            for (auto index = start; index < data.size() ; index++)
             {
-                //search for groupB
-                continue;
-            }
+                if (groupACount + data[index].getCount() > count)
+                    continue;
 
-            SplitSubset2(depth + 1, groupACount + data[index].getCount(), groupBCount, indexA, indexB);
+                groupAIndex.insert(index);
+                SplitSubset2(groupACount + data[index].getCount(), groupBCount, groupAIndex, groupBIndex);
+                groupAIndex.erase(index);
+            }
         }
+        else
+        {
+            unsigned int start = groupBIndex.size() ? *groupBIndex.rbegin() + 1 : 0;
+            for (auto index = start; index < data.size() ; index++)
+            {
+                if (groupAIndex.find(index) != groupAIndex.end())
+                {
+                    continue;
+                }
+
+                if (groupBCount + data[index].getCount() > count)
+                    continue;
+
+                groupBIndex.insert(index);
+                SplitSubset2(groupACount, groupBCount+ data[index].getCount(), groupAIndex, groupBIndex);
+                groupBIndex.erase(index);
+
+            }
+        }
+
+
     }
 
     unsigned int DataManager::getAverageStrength(std::vector<DataEntry*> &group)
