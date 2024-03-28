@@ -31,8 +31,8 @@ namespace MyTask {
 
     class DataGroupHandler {
     public:
-        void addEntry(const DataEntry &entry) {data.push_back(entry);}
-        void addEntry(DataEntry && entry) {data.push_back(std::move(entry));}
+        void addEntry(const DataEntry &entry) {if (validateEntry(entry)) data.push_back(entry);}
+        void addEntry(DataEntry && entry) {if (validateEntry(entry)) data.push_back(std::move(entry));}
         size_t getEntriesCount() const {return data.size();}
         bool getIsSplit() const {return (groupABestIndexes.size() > 0 && groupBBestIndexes.size() > 0);}
         bool splitGroups();
@@ -48,6 +48,7 @@ namespace MyTask {
         unsigned int getAverageStrength(std::vector<unsigned int> &groupIndexes);
         void updateBestGroups();
         void initIndexes();
+        bool validateEntry(const DataEntry &entry) {return (entry.getStrength() > 0 && entry.getCount()>0);}
 
         std::vector<DataEntry> data;
         std::vector<unsigned int> groupABestIndexes;

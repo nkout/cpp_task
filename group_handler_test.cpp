@@ -304,4 +304,18 @@ namespace MyTask {
         expB.push_back({"mouse", 1, 15});
         EXPECT_EQ(m.getGroupB(), expB);
     }
+
+    TEST_F(DataManagerTest, TestInsertInvalidEntry) {
+        DataGroupHandler m;
+        EXPECT_EQ(m.getEntriesCount(), 0);
+
+        m.addEntry({"nikos", 0, 10});
+        EXPECT_EQ(m.getEntriesCount(), 0);
+
+        m.addEntry({"nikos", 2, 0});
+        EXPECT_EQ(m.getEntriesCount(), 0);
+
+        m.addEntry({"nikos", 0, 0});
+        EXPECT_EQ(m.getEntriesCount(), 0);
+    }
 }
