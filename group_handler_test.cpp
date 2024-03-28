@@ -309,13 +309,16 @@ namespace MyTask {
         DataGroupHandler m;
         EXPECT_EQ(m.getEntriesCount(), 0);
 
-        m.addEntry({"nikos", 0, 10});
+        EXPECT_EQ(m.addEntry({"nikos", 0, 10}), false);
         EXPECT_EQ(m.getEntriesCount(), 0);
 
-        m.addEntry({"nikos", 2, 0});
+        EXPECT_EQ(m.addEntry({"nikos", 2, 0}), false);
         EXPECT_EQ(m.getEntriesCount(), 0);
 
-        m.addEntry({"nikos", 0, 0});
+        EXPECT_EQ(m.addEntry({"nikos", 0, 0}), false);
         EXPECT_EQ(m.getEntriesCount(), 0);
+
+        EXPECT_EQ(m.addEntry({"nikos", 1, 10}), true);
+        EXPECT_EQ(m.getEntriesCount(), 1);
     }
 }

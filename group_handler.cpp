@@ -4,19 +4,20 @@
 
 namespace MyTask
 {
+    void DataGroupHandler::initIndexes() {
+        groupACurrentIndexes.clear();
+        groupBCurrentIndexes.clear();
+        groupABestIndexes.clear();
+        groupBBestIndexes.clear();
+        bestAverageStrenthDiff = 0;
+    }
+
     bool DataGroupHandler::splitGroups() {
         initIndexes();
 
         splitGroupsImpl(0, 0, 0);
 
         return getIsSplit();
-    }
-
-    void DataGroupHandler::initIndexes() {
-        groupACurrentIndexes.clear();
-        groupBCurrentIndexes.clear();
-        groupABestIndexes.clear();
-        groupBBestIndexes.clear();
     }
 
     //more clean code, but it can go  to deep recursion if we have lot of data
@@ -49,16 +50,14 @@ namespace MyTask
     }
 
     void DataGroupHandler::updateBestGroups() {
-        if (groupABestIndexes.size() == 0 || groupBBestIndexes.size() == 0)
+        unsigned int currentStrengthDiff = abs(getAverageStrength(groupACurrentIndexes) -
+                                                getAverageStrength(groupBCurrentIndexes));
+
+        if (groupABestIndexes.size() == 0 || groupBBestIndexes.size() == 0 || bestAverageStrenthDiff > currentStrengthDiff)
         {
             groupABestIndexes = groupACurrentIndexes;
             groupBBestIndexes = groupBCurrentIndexes;
-        }
-        else if (abs(getAverageStrength(groupACurrentIndexes) - getAverageStrength(groupBCurrentIndexes)) <
-                 abs(getAverageStrength(groupABestIndexes) - getAverageStrength(groupBBestIndexes)))
-        {
-            groupABestIndexes = groupACurrentIndexes;
-            groupBBestIndexes = groupBCurrentIndexes;
+            bestAverageStrenthDiff = currentStrengthDiff;
         }
     }
 

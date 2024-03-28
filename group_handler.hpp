@@ -12,7 +12,7 @@ namespace MyTask {
         DataEntry(const std::string & id_, unsigned int count_, unsigned int strength_):
             id(id_), count(count_), strength(strength_) {}
         DataEntry(const std::string && id_, unsigned int count_, unsigned int strength_):
-                id(id_), count(count_), strength(strength_) {}
+                id(std::move(id_)), count(count_), strength(strength_) {}
         DataEntry(const DataEntry &) = default;
         DataEntry & operator=(const DataEntry &) = default;
         bool operator== (const DataEntry &d) const {return (d.getId() == id && d.getCount() == count && d.getStrength() == strength);}
@@ -31,8 +31,8 @@ namespace MyTask {
 
     class DataGroupHandler {
     public:
-        void addEntry(const DataEntry &entry) {if (validateEntry(entry)) data.push_back(entry);}
-        void addEntry(DataEntry && entry) {if (validateEntry(entry)) data.push_back(std::move(entry));}
+        bool addEntry(const DataEntry &entry) {return addEntryImpl(entry);}
+        bool addEntry(DataEntry && entry) {return addEntryImpl(std::move(entry));}
         size_t getEntriesCount() const {return data.size();}
         bool getIsSplit() const {return (groupABestIndexes.size() > 0 && groupBBestIndexes.size() > 0);}
         bool splitGroups();
@@ -50,7 +50,16 @@ namespace MyTask {
         void initIndexes();
         bool validateEntry(const DataEntry &entry) {return (entry.getStrength() > 0 && entry.getCount()>0);}
 
+        template <typename T> bool addEntryImpl(T && entry) {
+            if (validateEntry(entry)) {
+                data.push_back(std::forward<T>(entry));
+                return true;
+            }
+            return false;
+        }
+
         std::vector<DataEntry> data;
+        unsigned int bestAverageStrenthDiff;
         std::vector<unsigned int> groupABestIndexes;
         std::vector<unsigned int> groupBBestIndexes;
         std::vector<unsigned int> groupACurrentIndexes;
